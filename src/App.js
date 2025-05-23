@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PhotoAlbum from "react-photo-album";
-import photos from "./photos";
+import { sportPhotos, resorPhotos } from "./photos";
 import "react-photo-album/styles.css";
 import "./App.css";
 
@@ -12,6 +12,21 @@ import "yet-another-react-lightbox/plugins/thumbnails.css";
 
 function App() {
   const [index, setIndex] = useState(-1);
+  const [allPhotos, setAllPhotos] = useState([]);
+  const [offset, setOffset] = useState(0); // För att spåra vilken sektion vi klickar i
+
+  useEffect(() => {
+    const disableRightClick = (e) => e.preventDefault();
+    document.addEventListener("contextmenu", disableRightClick);
+    return () => {
+      document.removeEventListener("contextmenu", disableRightClick);
+    };
+  }, []);
+
+  const handleClick = (sectionOffset, index) => {
+    setOffset(sectionOffset);
+    setIndex(index);
+  };
 
   return (
     <div style={{ padding: "1rem", maxWidth: "1500px", margin: "0 auto" }}>
@@ -23,18 +38,51 @@ function App() {
         <a href="#kontakt">Kontakt</a>
       </nav>
 
+      <h2 className="section-title">Sport</h2>
       <PhotoAlbum
         layout="rows"
-        photos={photos}
+        photos={sportPhotos}
         targetRowHeight={200}
-        onClick={({ index }) => setIndex(index)}
+        onClick={({ index }) => handleClick(0, index)}
+        renderPhoto={({ imageProps }) => (
+          <img
+            {...imageProps}
+            onContextMenu={(e) => e.preventDefault()}
+            draggable={false}
+            style={{
+              ...imageProps.style,
+              userSelect: "none",
+              pointerEvents: "auto",
+            }}
+          />
+        )}
+      />
+
+      <h2 className="section-title">Resor</h2>
+      <PhotoAlbum
+        layout="rows"
+        photos={resorPhotos}
+        targetRowHeight={200}
+        onClick={({ index }) => handleClick(sportPhotos.length, index)}
+        renderPhoto={({ imageProps }) => (
+          <img
+            {...imageProps}
+            onContextMenu={(e) => e.preventDefault()}
+            draggable={false}
+            style={{
+              ...imageProps.style,
+              userSelect: "none",
+              pointerEvents: "auto",
+            }}
+          />
+        )}
       />
 
       <Lightbox
         open={index >= 0}
         index={index}
         close={() => setIndex(-1)}
-        slides={photos}
+        slides={[...sportPhotos, ...resorPhotos]}
         plugins={[Zoom, Thumbnails]}
       />
 
